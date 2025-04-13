@@ -38,41 +38,33 @@ let ratesUpdateInterval = setInterval(getCurrentStrocks, 60000);
 
 let monManager = new MoneyManager();
 
-monManager.addMoneyCallback = data => {
-    ApiConnector.addMoney(data, answer => {
+function moneyManagerCallbackTemplate(successMesage, errorMessage) {
+    return (answer) => {
         if(answer.success) {
             ProfileWidget.showProfile(answer.data);
         }
-        let resultMessage = answer.success ? "Счёт пополнен" : `При пополнении произошла ошибка:\n${answer.error}`;
+        let resultMessage = answer.success ? successMesage : `${errorMessage}:\n${answer.error}`;
         monManager.setMessage(answer.success, resultMessage);
-    });
+    };
+}
+
+monManager.addMoneyCallback = data => { 
+    ApiConnector.addMoney(data, moneyManagerCallbackTemplate("Счёт пополнен", "При пополнении произошла ошибка"));
 };
 
-monManager.conversionMoneyCallback = data => {
-    ApiConnector.convertMoney(data, answer => {
-        if(answer.success) {
-            ProfileWidget.showProfile(answer.data);
-        }
-        let resultMessage = answer.success ? "Конвертация выполнена" : `При конвертации произошла ошибка:\n${answer.error}`;
-        monManager.setMessage(answer.success, resultMessage);
-    });
+monManager.conversionMoneyCallback = data => { 
+    ApiConnector.convertMoney(data, moneyManagerCallbackTemplate("Конвертация выполнена", "При конвертации произошла ошибка"));
 };
 
-monManager.sendMoneyCallback = data => {
-    ApiConnector.transferMoney(data, answer => {
-        if(answer.success) {
-            ProfileWidget.showProfile(answer.data);
-        }
-        let resultMessage = answer.success ? "Перевод выполнен" : `Перевод не выполнен:\n${answer.error}`;
-        monManager.setMessage(answer.success, resultMessage);
-    });
+monManager.sendMoneyCallback = data => { 
+    ApiConnector.transferMoney(data, moneyManagerCallbackTemplate("Перевод выполнен", "Перевод не выполнен"));
 };
 
-// task 2.4 - adding favourite users
+// task 2.5 - adding favorite users
 
 let favWidget = new FavoritesWidget();
 
-function callbackStencil(successMesage, errorMessage) {
+function favoriteWidgetCallbackTemplate(successMesage, errorMessage) {
     return answer => {
         let resultMessage = answer.success ? successMesage : `${errorMessage}:\n${answer.error}`;
         favWidget.setMessage(answer.success, resultMessage);
@@ -82,53 +74,15 @@ function callbackStencil(successMesage, errorMessage) {
         favWidget.clearTable();
         favWidget.fillTable(answer.data);
         monManager.updateUsersList(answer.data);
-    }
+    };
 }
 
-ApiConnector.getFavorites(callbackStencil("↑ Ваша адрессная книга ↑", "Не удалось загрузить адрессную книгу"));
+ApiConnector.getFavorites(favoriteWidgetCallbackTemplate("↑ Ваша адресная книга ↑", "Не удалось загрузить адресную книгу"));
   
 favWidget.addUserCallback = data => {
-    ApiConnector.addUserToFavorites(data, callbackStencil("Пользователь добавлен в адрессную книгу", "Не удалось добавить пользователя в адрессную книгу"));
+    ApiConnector.addUserToFavorites(data, favoriteWidgetCallbackTemplate("Пользователь добавлен в адресную книгу", "Не удалось добавить пользователя в адресную книгу"));
 };
 
 favWidget.removeUserCallback = data => {
-    ApiConnector.addUserToFavorites(data, callbackStencil("Пользователь удалён из адрессной книги", "Не удалось удалить пользователя из адрессной книги"));
+    ApiConnector.removeUserFromFavorites(data, favoriteWidgetCallbackTemplate("Пользователь удалён из адресной книги", "Не удалось удалить пользователя из адресной книги"));
 };
-
-
-// ApiConnector.getFavorites(answer => {
-//     let resultMessage = answer.success ? "↑ Ваша адрессная книга ↑" : `Не удалось загрузить адрессную книгу:\n${answer.error}`;
-//     favWidget.setMessage(answer.success, resultMessage);
-//     if(!answer.success) {
-//         return;
-//     }
-//     favWidget.clearTable();
-//     favWidget.fillTable(answer.data);
-//     monManager.updateUsersList(answer.data);
-// });
-
-// favWidget.addUserCallback = data => {
-//     ApiConnector.addUserToFavorites(data, answer => {
-//         let resultMessage = answer.success ? "Пользователь добавлен в адрессную книгу" : `Не удалось добавить пользователя в адрессную книгу:\n${answer.error}`;
-//         favWidget.setMessage(answer.success, resultMessage);
-//         if(!answer.success) {
-//             return;
-//         }
-//         favWidget.clearTable();
-//         favWidget.fillTable(answer.data);
-//         monManager.updateUsersList(answer.data);
-//     });
-// };
-
-// favWidget.removeUserCallback = data => {
-//     ApiConnector.removeUserFromFavorites(data, answer => {
-//         let resultMessage = answer.success ? "Пользователь удалён из адрессной книги" : `Не удалось удалить пользователя из адрессной книги:\n${answer.error}`;
-//         favWidget.setMessage(answer.success, resultMessage);
-//         if(!answer.success) {
-//             return;
-//         }
-//         favWidget.clearTable();
-//         favWidget.fillTable(answer.data);
-//         monManager.updateUsersList(answer.data);
-//     });
-// };
